@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Indicar Veículos — Estoque</title>
+  <style>
+    :root{
+      --bg:#0b0b0b; /* preto */
+      --card:#0f0f0f;
+      --gold:#b8860b; /* dourado */
+      --muted:#cfc6b8;
+      --gap:18px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--muted);-webkit-font-smoothing:antialiased}
+    header{padding:28px 20px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:20px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,var(--gold),#6f5407);display:flex;align-items:center;justify-content:center;font-weight:700;color:#111}
+    h1{margin:0;font-size:20px;color:var(--muted)}
+    .controls{margin-left:auto;display:flex;gap:12px;align-items:center}
+
+    .search{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:10px;color:var(--muted);min-width:220px}
+    .search::placeholder{color:rgba(255,255,255,0.35)}
+    .filters{display:flex;gap:10px}
+    .filter-select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;color:var(--muted)}
+
+    main{padding:22px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--gap)}
+    .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(2,2,2,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .card .thumb{height:160px;background:#111;background-size:cover;background-position:center}
+    .card .info{padding:12px}
+    .model{font-weight:600;color:white;margin:0}
+    .meta{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px}
+    .price{margin-top:8px;color:var(--gold);font-weight:700}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .btn{flex:1;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:600;display:inline-block}
+    .btn-details{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .btn-whatsapp{background:linear-gradient(90deg,var(--gold),#d6b15b);color:#111}
+
+    footer{padding:18px;text-align:center;color:rgba(255,255,255,0.5)}
+
+    /* modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.6));z-index:60}
+    .modal.open{display:flex}
+    .modal-card{width:95%;max-width:980px;background:linear-gradient(180deg,#0e0e0e,#080808);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .gallery{display:flex;gap:10px;flex-direction:column}
+    .main-img{height:360px;background-size:cover;background-position:center;border-radius:8px}
+    .thumbs{display:flex;gap:8px}
+    .thumbs img{height:62px;width:100px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent}
+    .thumbs img.active{border-color:var(--gold)}
+    .detail-side{display:flex;flex-direction:column;gap:12px}
+    .detail-side h2{margin:0;color:white}
+    .detail-meta{color:rgba(255,255,255,0.6)}
+    .close-btn{background:transparent;border:none;color:var(--muted);font-weight:700;cursor:pointer}
+
+    @media (max-width:900px){
+      .modal-card{grid-template-columns:1fr;}
+      .main-img{height:240px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">IV</div>
+      <div>
+        <h1>Indicar Veículos</h1>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5)">Catálogo — negociar via WhatsApp</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input id="search" class="search" placeholder="Digitar modelo (ex: Corolla)" />
+      <select id="select-type" class="filter-select">
+        <option value="">Todos os tipos</option>
+        <option value="Hatch">Hatch</option>
+        <option value="Sedan">Sedan</option>
+        <option value="SUV">SUV</option>
+        <option value="Pickup">Pickup</option>
+      </select>
+      <select id="sort" class="filter-select">
+        <option value="">Ordenar</option>
+        <option value="price-asc">Preço: menor → maior</option>
+        <option value="price-desc">Preço: maior → menor</option>
+        <option value="year-desc">Ano: mais novo</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid" id="grid"></section>
+    <footer>Indicar Veículos • Entre em contato só para negociar — este site envia para o WhatsApp do vendedor.</footer>
+  </main>
+
+  <!-- Modal de detalhe -->
+  <div id="modal" class="modal" role="dialog" aria-hidden="true">
+    <div class="modal-card" role="document">
+      <div class="gallery">
+        <div id="mainImg" class="main-img"></div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+      <div class="detail-side">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <h2 id="dModel"></h2>
+            <div class="detail-meta" id="dMeta"></div>
+          </div>
+          <button class="close-btn" id="closeModal">X</button>
+        </div>
+        <div style="margin-top:6px"><strong class="price" id="dPrice"></strong></div>
+        <p id="dDesc" style="color:rgba(255,255,255,0.65)"></p>
+        <div style="margin-top:auto">
+          <a id="dContact" class="btn btn-whatsapp" href="#" target="_blank">Falar com vendedor (WhatsApp)</a>
+          <a id="dMore" class="btn btn-details" href="#" style="margin-top:8px">Ver no catálogo</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Número de WhatsApp usado no template. Se quiser trocar, altere aqui (formato: código do país + DDD + número, sem sinais)
+    const WHATSAPP_NUMBER = '5561940028922'; // assumi +55 (Brasil) + DDD 61 + número 9400289222
+
+    // Lista de carros (10 exemplos). Troque os dados e imagens conforme for preciso.
+    const cars = [
+      {id:1,model:'Fiat Toro Volcano',type:'Pickup',year:2022,price:115000,desc:'Motor 2.0 Diesel, única dona, 45.000 km',images:[
+        'https://source.unsplash.com/800x600/?fiat,toro',
+        'https://source.unsplash.com/800x600/?pickup,truck',
+        'https://source.unsplash.com/800x600/?pickup,fiat'
+      ]},
+      {id:2,model:'Chevrolet Onix Plus',type:'Sedan',year:2021,price:78000,desc:'Completo, IPVA 2025 pago, ótima conservação',images:[
+        'https://source.unsplash.com/800x600/?chevrolet,onix',
+        'https://source.unsplash.com/800x600/?hatch,chevrolet',
+        'https://source.unsplash.com/800x600/?onix'
+      ]},
+      {id:3,model:'Toyota Corolla XEi',type:'Sedan',year:2020,price:105000,desc:'Conforto e consumo, revisões na concessionária',images:[
+        'https://source.unsplash.com/800x600/?toyota,corolla',
+        'https://source.unsplash.com/800x600/?corolla,sedan',
+        'https://source.unsplash.com/800x600/?toyota'
+      ]},
+      {id:4,model:'Volkswagen T-Cross',type:'SUV',year:2023,price:135000,desc:'SUV médio, ótimo espaço interno, 2 portas USB traseiras',images:[
+        'https://source.unsplash.com/800x600/?volkswagen,tcross',
+        'https://source.unsplash.com/800x600/?suv,volkswagen',
+        'https://source.unsplash.com/800x600/?t-cross'
+      ]},
+      {id:5,model:'Hyundai HB20',type:'Hatch',year:2019,price:54000,desc:'Baixa quilometragem, econômico, ótimo estado',images:[
+        'https://source.unsplash.com/800x600/?hyundai,hb20',
+        'https://source.unsplash.com/800x600/?hb20',
+        'https://source.unsplash.com/800x600/?hyundai'
+      ]},
+      {id:6,model:'Honda Civic Touring',type:'Sedan',year:2018,price:92000,desc:'Motor 2.0, câmbio CVT, interior premium',images:[
+        'https://source.unsplash.com/800x600/?honda,civic',
+        'https://source.unsplash.com/800x600/?civic,sedan',
+        'https://source.unsplash.com/800x600/?honda'
+      ]},
+      {id:7,model:'Renault Kwid',type:'Hatch',year:2020,price:42000,desc:'Ideal para cidade, baixo consumo',images:[
+        'https://source.unsplash.com/800x600/?renault,kwid',
+        'https://source.unsplash.com/800x600/?kwid',
+        'https://source.unsplash.com/800x600/?renault'
+      ]},
+      {id:8,model:'Nissan Kicks',type:'SUV',year:2022,price:98000,desc:'Espaçoso e econômico, câmbio automático',images:[
+        'https://source.unsplash.com/800x600/?nissan,kicks',
+        'https://source.unsplash.com/800x600/?kicks,suv',
+        'https://source.unsplash.com/800x600/?nissan'
+      ]},
+      {id:9,model:'Jeep Compass Longitude',type:'SUV',year:2021,price:150000,desc:'Tração 4x2, muito conforto e tecnologia',images:[
+        'https://source.unsplash.com/800x600/?jeep,compass',
+        'https://source.unsplash.com/800x600/?compass,jeep',
+        'https://source.unsplash.com/800x600/?jeep'
+      ]},
+      {id:10,model:'Ford Ka',type:'Hatch',year:2017,price:36000,desc:'Único dono, manutenção em dia',images:[
+        'https://source.unsplash.com/800x600/?ford,ka',
+        'https://source.unsplash.com/800x600/?ka,ford',
+        'https://source.unsplash.com/800x600/?ford'
+      ]}
+    ];
+
+    // util
+    const $ = id => document.getElementById(id);
+
+    // render grid
+    function renderGrid(list){
+      const grid = $('grid');
+      grid.innerHTML = '';
+      list.forEach(car => {
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="thumb" style="background-image:url('${car.images[0]}')"></div>
+          <div class="info">
+            <h3 class="model">${car.model}</h3>
+            <div class="meta">${car.type} • ${car.year}</div>
+            <div class="price">R$ ${numberWithCommas(car.price)}</div>
+            <div class="actions">
+              <button class="btn btn-details" data-id="${car.id}">Detalhes</button>
+              <a class="btn btn-whatsapp" href="${waLink(car)}" target="_blank">Negociar (WhatsApp)</a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(el);
+      });
+
+      // attach detail buttons
+      document.querySelectorAll('.btn-details').forEach(btn=>{
+        btn.addEventListener('click', e => openModal(parseInt(e.currentTarget.dataset.id)));
+      });
+    }
+
+    function waLink(car){
+      const text = encodeURIComponent(`Olá! Tenho interesse no veículo ${car.model} (${car.year}). Podemos negociar?`);
+      return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+    }
+
+    function numberWithCommas(x){
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    // Modal
+    const modal = $('modal');
+    const mainImg = $('mainImg');
+    const thumbs = $('thumbs');
+    const dModel = $('dModel');
+    const dMeta = $('dMeta');
+    const dPrice = $('dPrice');
+    const dDesc = $('dDesc');
+    const dContact = $('dContact');
+    const dMore = $('dMore');
+    const closeModal = $('closeModal');
+
+    function openModal(id){
+      const car = cars.find(c=>c.id===id);
+      if(!car) return;
+      dModel.textContent = car.model;
+      dMeta.textContent = `${car.type} • ${car.year}`;
+      dPrice.textContent = `R$ ${numberWithCommas(car.price)}`;
+      dDesc.textContent = car.desc;
+      dContact.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Tenho interesse no '+car.model+' ('+car.year+'). Podemos negociar?')}`;
+      dMore.href = '#';
+
+      mainImg.style.backgroundImage = `url('${car.images[0]}')`;
+      thumbs.innerHTML = '';
+      car.images.forEach((src,i)=>{
+        const img = document.createElement('img');
+        img.src = src;
+        if(i===0) img.classList.add('active');
+        img.addEventListener('click', ()=>{
+          document.querySelectorAll('.thumbs img').forEach(t=>t.classList.remove('active'));
+          img.classList.add('active');
+          mainImg.style.backgroundImage = `url('${src}')`;
+        });
+        thumbs.appendChild(img);
+      });
+
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+    }
+    closeModal.addEventListener('click', ()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true')});
+    modal.addEventListener('click',(e)=>{if(e.target===modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}});
+
+    // Search + filters
+    function applyFilters(){
+      const q = $('search').value.trim().toLowerCase();
+      const type = $('select-type').value;
+      const sort = $('sort').value;
+      let list = cars.filter(c=> c.model.toLowerCase().includes(q));
+      if(type) list = list.filter(c=>c.type===type);
+      if(sort==='price-asc') list.sort((a,b)=>a.price-b.price);
+      if(sort==='price-desc') list.sort((a,b)=>b.price-a.price);
+      if(sort==='year-desc') list.sort((a,b)=>b.year-b.year? b.year-a.year:0);
+      renderGrid(list);
+    }
+
+    document.getElementById('search').addEventListener('input', applyFilters);
+    document.getElementById('select-type').addEventListener('change', applyFilters);
+    document.getElementById('sort').addEventListener('change', applyFilters);
+
+    // inicializa
+    renderGrid(cars);
+  </script>
+</body>
+</html>
