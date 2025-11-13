@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Indicar Veículos — Estoque</title>
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --card:#0f0f0f;
+      --gold:#b8860b;
+      --muted:#cfc6b8;
+      --gap:18px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--muted);-webkit-font-smoothing:antialiased}
+    header{padding:28px 20px;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:20px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,var(--gold),#6f5407);display:flex;align-items:center;justify-content:center;font-weight:700;color:#111}
+    h1{margin:0;font-size:20px;color:var(--muted)}
+    .controls{margin-left:auto;display:flex;gap:12px;align-items:center}
+    .search{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:10px;color:var(--muted);min-width:220px}
+    .search::placeholder{color:rgba(255,255,255,0.35)}
+    .filters{display:flex;gap:10px}
+    .filter-select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;color:var(--muted)}
+    main{padding:22px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--gap)}
+    .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(2,2,2,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .card .thumb{height:160px;background:#111;background-size:cover;background-position:center}
+    .card .info{padding:12px}
+    .model{font-weight:600;color:white;margin:0}
+    .meta{font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px}
+    .price{margin-top:8px;color:var(--gold);font-weight:700}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .btn{flex:1;padding:10px;border-radius:8px;text-decoration:none;text-align:center;font-weight:600;display:inline-block}
+    .btn-details{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .btn-whatsapp{background:linear-gradient(90deg,var(--gold),#d6b15b);color:#111}
+    footer{padding:18px;text-align:center;color:rgba(255,255,255,0.5)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">IV</div>
+      <div>
+        <h1>Indicar Veículos</h1>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5)">Catálogo — negociar via WhatsApp</div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <h2 style="text-align:center;color:white;">Catálogo de Carros</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="thumb" style="background-image:url('https://source.unsplash.com/800x600/?car,sedan')"></div>
+        <div class="info">
+          <h3 class="model">Toyota Corolla 2021</h3>
+          <div class="meta">Sedan • 2021</div>
+          <div class="price">R$ 115.000</div>
+          <div class="actions">
+            <a class="btn btn-whatsapp" href="https://wa.me/5561940028922?text=Olá! Tenho interesse no Toyota Corolla 2021">Negociar (WhatsApp)</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>Indicar Veículos • Entre em contato apenas para negociação via WhatsApp.</footer>
+  </main>
+</body>
+</html>
